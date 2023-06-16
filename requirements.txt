@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+SpeechRecognition
+Levenshtein
+random
+requests
+os
+mysql
+mysql-connector-python
