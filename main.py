@@ -1,4 +1,4 @@
-from fastapi import FastAPI,UploadFile
+from fastapi import FastAPI
 import speech_recognition as sr
 import random,requests,os
 import Levenshtein
@@ -54,54 +54,6 @@ async def comparer(original_text: str, recorded_audio: str):
     return {
         "Recognized Text": res[0],
         "Matching Score": res[1]}
-
-
-@app.websocket("/audio/socket/comparison")
-async def audio_comparison(websocket: WebSocket):
-    # Accept the websocket connection
-    await websocket.accept()
-
-    # Add the websocket connection to active connections dictionary
-    connection_id = str(random.randint(1, 999999))
-    active_connections[connection_id] = websocket
-
-    try:
-        while True:
-            # Receive data from the client
-            data = await websocket.receive_text()
-            
-            # Parse the received data
-            original_text, recorded_audio = data.split(",")
-
-            # Use ASR system to convert recorded audio to text
-            recognized_text = asr_system(recorded_audio)
-            print(f"User said: {recognized_text}\n")
-
-            # Calculate Levenshtein distance between recognized and reference text
-            distance = Levenshtein.distance(original_text, recognized_text)
-
-            # Calculate matching score
-            if recognized_text == "backjam":
-                print("Override Scoring")
-                matching_score = random.uniform(0.1420, 0.4650)
-            else:
-                matching_score = 1.0 - (distance / len(original_text))
-
-            # Send the matching score back to the client
-            await websocket.send_text(str(matching_score))
-    except:
-        # Remove the websocket connection from active connections dictionary
-
-        del active_connections[connection_id]
-
-
-@app.post("/audio/bytes/comparison")
-def comparer(original_text: str, recorded_audio: UploadFile):
-    # Read the byte stream from the uploaded file
-    audio_bytes = recorded_audio.file.read()
-
-    res = compare_pronunciation(original_text, audio_bytes)
-    return res
 
 @app.get("/")
 async def dashboard():
